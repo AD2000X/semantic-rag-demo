@@ -36,13 +36,15 @@ def load_vector_store():
 vectorstore = load_vector_store()
 
 # --------- RAG PIPELINE ---------
-llm = ChatOpenAI(temperature=0)
-rag_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=vectorstore.as_retriever(search_type="similarity", k=4),
-    return_source_documents=True
-)
+@st.cache_resource
+def create_chain(temp, k):
+    llm = ChatOpenAI(temperature=temp)
+    return RetrievalQA.from_chain_type(
+        llm=llm,
+        chain_type="stuff",
+        retriever=vectorstore.as_retriever(search_type="similarity", k=k),
+        return_source_documents=True
+    )
 
 # --------- UI INPUT ---------
 st.sidebar.header("🔧 RAG Parameters")
@@ -53,8 +55,7 @@ query = st.text_input("Ask a question about the enterprise data:", "What does th
 
 if query:
     with st.spinner("Thinking..."):
-        rag_chain.retriever.search_kwargs["k"] = k_val
-        rag_chain.llm.temperature = temp
+        rag_chain = create_chain(temp, k_val)
         result = rag_chain(query)
         st.markdown("### 🤖 Answer")
         st.write(result["result"])
