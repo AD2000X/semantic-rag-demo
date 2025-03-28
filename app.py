@@ -10,7 +10,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
 
 # --------- SETUP ---------
-os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+openai_key = os.environ.get("OPENAI_API_KEY")
+if not openai_key:
+    st.error("OPENAI_API_KEY environment variable is not set")
+    st.stop()
+
+os.environ["OPENAI_API_KEY"] = openai_key
 
 st.set_page_config(page_title="Semantic RAG Demo", layout="wide")
 st.title("📚 Semantic RAG Demo")
